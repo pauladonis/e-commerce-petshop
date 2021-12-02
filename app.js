@@ -12,7 +12,7 @@ const swaggerUI = require('swagger-ui-express');
 const YAML = require('yamljs');
 const e = require('connect-flash');
 const swaggerJsDocs = YAML.load('./api.yaml');
-
+const client = require('./client');
 
 initializePassport(passport);
 
