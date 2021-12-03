@@ -16,8 +16,29 @@ const client = require('./client');
 
 initializePassport(passport);
 
+const options = {
+  definition: {
+      openapi: "3.0.0",
+      info: {
+          title: "E-commerce REST API",
+          version: "1.0.0",
+          description: "A simple e-commerce API"
+      },
+      schema: [
+          "http",
+          "https"
+      ],
+      servers: [
+          {
+              url: "https://jims-ecommerce-rest-api.herokuapp.com/"
+          }
+      ],
+  },
+  apis: ["./swagger.yml"]
+}
 
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerJsDocs));
+app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs))
 app.use(express.json())
 app.use(passport.initialize())
 app.use(passport.session())
