@@ -174,6 +174,7 @@ app.get('/users', (req, res, next) => {
 });
 
 app.get('/users/:userId', (req, res, next) => {
+  console.log('aici');
   const result = repository.showUsersById(req.params['userId']);
   result.then(value=>{
     if(!value.length) {
