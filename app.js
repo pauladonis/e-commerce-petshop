@@ -30,7 +30,7 @@ const options = {
       ],
       servers: [
           {
-              url: "https://jims-ecommerce-rest-api.herokuapp.com/"
+              url: "https://petshoppernapp.herokuapp.com/"
           }
       ],
   },
