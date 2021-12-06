@@ -27,6 +27,10 @@ app.use(session({ cookie: { maxAge: 60000 },
   secret: 'secret',
   resave: false, 
   saveUninitialized: false}));
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE"]
+}));
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
