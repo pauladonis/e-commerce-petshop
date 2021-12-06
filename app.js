@@ -30,7 +30,7 @@ app.use(session({ cookie: { maxAge: 60000 },
   saveUninitialized: false}));
 app.use(cors({
   origin: "*",
-  url: "https://petshoppernapp.herokuapp.com/api-docs",
+  url: "http://petshoppernapp.herokuapp.com/api-docs",
   methods: ["GET", "POST", "PUT", "DELETE"],
   headers: ["Content-Type: application/json",
   "Accept: application/json"]
