@@ -30,7 +30,8 @@ app.use(session({ cookie: { maxAge: 60000 },
   saveUninitialized: false}));
 app.use(cors({
   origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"]
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  accept: "application/json"
 }));
 
 app.get('/', (req, res) => {
