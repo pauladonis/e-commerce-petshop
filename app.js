@@ -3,11 +3,12 @@ const repository = require ('./repository')
 const { pool } = require('./dbConfig') 
 const passport = require("passport");
 const initializePassport = require ('./passportConfig')
-const client = require('pg')
 const app = express()
 const port = process.env.PORT || 3000
 const flash = require('connect-flash')
-const session = require('express-session')
+const session = require('cookie-session')
+const cookieParser = require('cookie-parser')
+const bodyParser = require('body-parser');
 const swaggerUI = require('swagger-ui-express');
 const YAML = require('yamljs');
 const e = require('connect-flash');
@@ -19,22 +20,23 @@ initializePassport(passport);
 
 
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerJsDocs));
-
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.json())
 app.use(passport.initialize())
 app.use(passport.session())
 app.use(flash());
 app.use(session({ cookie: { maxAge: 60000 }, 
   secret: 'secret',
-  resave: false, 
-  saveUninitialized: false}));
+  resave: true, 
+  saveUninitialized: true}));
 app.use(cors({
-  origin: "*",
-  url: "http://petshoppernapp.herokuapp.com/api-docs",
+  origin: ["http://localhost:3001"],
   methods: ["GET", "POST", "PUT", "DELETE"],
-  headers: ["Content-Type: application/json",
-  "Accept: application/json"]
+  credentials: true
 }));
+
+app.use(cookieParser('secret'));
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
@@ -52,6 +54,7 @@ app.post('/register', (req, res, next) => {
     }
   }).catch(error=>{next(error)});
 });
+
 
 
 //cart endpoints
@@ -85,7 +88,7 @@ app.post('/cart/:cartId/checkout', (req, res, next) => {
     if(!value1.length) {
       res.status('404').send('Cart not found');
     } else {
-      result2.then(value2=>{res.send('Order Created');
+      result2.then(value2=>{res.send(value2);
          })
     }
   }).catch(error=>{next(error)});
@@ -134,6 +137,16 @@ app.get('/products/:productId', (req, res) => {
       res.status('404').send('Product Not Found')
     } else {
     res.status('200').send(value)};
+    });
+});
+
+app.get('/products', (req, res) => {
+  const result = repository.showProducts();
+  result.then(value=>{
+    if(!value.length) {
+      res.status('404').send('Page Not Found');  
+    } else {
+      res.status('200').send(value)};
     });
 });
 
@@ -246,7 +259,12 @@ app.get('/succesLogin', (req,res) => {
 });
 
 app.get('/failLogin', (req,res) => {
-  res.status('401').send('Login failure');
+  res.status('401').send('Login Failure');
+});
+
+app.get('/logout', function(req, res){
+  req.logout();
+  res.redirect('/');
 });
 
 app.use((req, res, next) => {
