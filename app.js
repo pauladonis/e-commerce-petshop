@@ -14,6 +14,7 @@ const YAML = require('yamljs');
 const e = require('connect-flash');
 const swaggerJsDocs = YAML.load('./api.yaml');
 const cors = require('cors');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_TEST);
 
 
 initializePassport(passport);
@@ -26,12 +27,13 @@ app.use(express.json())
 app.use(passport.initialize())
 app.use(passport.session())
 app.use(flash());
-app.use(session({ cookie: { maxAge: 60000 }, 
+app.use(session({ cookie: { maxAge: 60000 },
+  key: 'userId', 
   secret: 'secret',
   resave: true, 
   saveUninitialized: true}));
 app.use(cors({
-  origin: ["http://localhost:3001"],
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
@@ -47,10 +49,16 @@ app.get('/', (req, res) => {
 app.post('/register', (req, res, next) => {
   const result = repository.registerUser(req.body);
   result.then(value=>{
+    console.log(value);
     if(!value.length) {
       res.status('400').send('Bad Request');
     } else {
-      res.status('201').send('User Registered');
+      res.status('201').send(value);
+      req.login(value, function(err) {
+        if (!err) {
+          res.redirect('/account');
+        }
+      });
     }
   }).catch(error=>{next(error)});
 });
@@ -58,20 +66,20 @@ app.post('/register', (req, res, next) => {
 
 
 //cart endpoints
-app.post('/cart', (req, res, next) => {
-  const result = repository.addToCart(req.body);
+app.post('/cart', (req, res) => {
+  const result = repository.createCart(req.body);
   result.then(value=>{
     if(!value.length) {
     res.status('400').send('Bad Request');
     } else {
       res.status('201').send(value);
     }
-  }).catch(error=>{next(error)});
+  });
 });
 
 
-app.post('/cart/:cartId', ( req, res, next) => {
-  const result = repository.addToCartById(req.params['cartId']);
+app.post('/cart/:cartId', (error, req, res, next) => {
+  const result = repository.addToCartById(req.params['cartId'], req.body.product_id, req.body.price);
   result.then(value=>{
     if(!value.length) {
       res.status('400').send('Bad Request')
@@ -81,22 +89,26 @@ app.post('/cart/:cartId', ( req, res, next) => {
   }).catch(error=>{next(error)});
 });
 
-app.post('/cart/:cartId/checkout', (req, res, next) => {
+app.post('/cart/:cartId/checkout',async (req, res, next) => {
   const result1 = repository.showCartById(req.params['cartId']);
-  const result2 = repository.createOrder(req.params['cartId']);
+  const result2 = await repository.createOrder(req.params['cartId']);
+  const result3 = await repository.createOrderItem(req.params['cartId']);
   result1.then(value1 => {
     if(!value1.length) {
       res.status('404').send('Cart not found');
     } else {
-      result2.then(value2=>{res.send(value2);
-         })
+      result2;
+        res.status('201').send(result2);
+      
+      
+      result3;
     }
   }).catch(error=>{next(error)});
 })
 
 
-app.get('/cart', (req, res) => {
-  const result = repository.showCart() 
+app.post('/carts', (req, res) => {
+  const result = repository.showCart(req.body.userId); 
   result.then(value=>{
     if(!value.length) {
       res.status('404').send('Cart not found');
@@ -117,15 +129,15 @@ app.get('/cart/:cartId', (req, res) => {
   });  
 });
 
-app.delete('/cart/:cartId', (req, res) => {
-  const result = repository.removeFromCartById(req.params['cartId']);
+app.delete('/cart/:cartId', (req, res, next) => {
+  const result = repository.removeFromCartById(req.params['cartId'], req.body.product_id);
   result.then(value=>{
-    if(!value.length) {
+    if(!value) {
       res.status('400').send('Bad Request');
     } else {
-      res.status('200').send('Item removed from cart');
+      res.status('204').send('Item removed from cart');
     }
-  })
+  }).catch(error=>{next(error)});
   
 });
 
@@ -151,7 +163,7 @@ app.get('/products', (req, res) => {
 });
 
 app.get('/products', (req, res) => {
-  const result = repository.showProductByCategory(req.query.category);
+  const result = repository.showProductByCategory(req.query);
   result.then(value=>{
     if(!value.length) {
       res.status('404').send('Page Not Found');  
@@ -188,14 +200,13 @@ app.get('/users', (req, res, next) => {
   const result = repository.showUsers();
   result.then(value=>{
     if(!value.length) {
-      res.status('404').send('Page Not Found');
+      res.status('404').send('User Not Found');
     } else {
       res.status('200').send(value)};
     }).catch(error=>{next(error)});
 });
 
 app.get('/users/:userId', (req, res, next) => {
-  console.log('aici');
   const result = repository.showUsersById(req.params['userId']);
   result.then(value=>{
     if(!value.length) {
@@ -227,6 +238,17 @@ app.delete('/users', (req, res, next) => {
 });
 
 //orders endpoints
+app.get('/orders/:cartId', (req, res) => {
+  const result = repository.getOrderId(req.params['cartId']);
+  result.then(value=>{
+    if(!value.length) {
+      res.status('404').send('Order Not Found');
+    } else {
+      res.status('200').send(value);
+    }
+  })
+})
+
 app.get('/orders', (req, res) => {
   const result = repository.showOrders();
   result.then(value=>{
@@ -237,7 +259,7 @@ app.get('/orders', (req, res) => {
     });
 });
 
-app.get('/orders/:orderId', (req, res) => {
+app.get('/order/:orderId', (req, res) => {
   const result = repository.showOrdersById(req.params['orderId']);
   result.then(value=>{
     if(!value.length) {
@@ -247,24 +269,52 @@ app.get('/orders/:orderId', (req, res) => {
   });
 });
 
+
+
+//stripe payment
+app.post('/payment', async (req, res) => {
+  let {amount, id} = req.body;
+  try{
+    const payment = await stripe.paymentIntents.create({
+      amount,
+      currency: 'GBP',
+      description: 'All Aquaristik',
+      payment_method: id,
+      confirm: true
+    })
+    console.log('Payment: ', payment);
+    res.json({
+      message: 'Payment successfull',
+      success: true
+    })
+  } catch (error) {
+      console.log('Error', error);
+      res.json({
+        message: 'Payment failed',
+        success: false
+      })
+  }
+})
+
 //passport login
 app.post('/login',
   passport.authenticate('local', { successRedirect: '/succesLogin',
-                                   failureRedirect: '/failLogin',
+                                   failureRedirect: '/failedLogin',
                                    failureFlash: true })
 );
 
-app.get('/succesLogin', (req,res) => {
-  res.status('200').send('You are now logged in')
+app.get('/succesLogin', (req, res) => {
+  res.status('200').send(req.session.passport);
+  console.log(req.session.passport)
 });
 
-app.get('/failLogin', (req,res) => {
-  res.status('401').send('Login Failure');
+app.get('/failedLogin', (req, res) => {
+  res.status('401').send('Username or password is incorrect');
 });
 
 app.get('/logout', function(req, res){
   req.logout();
-  res.redirect('/');
+  res.redirect('/products');
 });
 
 app.use((req, res, next) => {
@@ -279,5 +329,5 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening at https://localhost:${port}`)
+  console.log(`Example app listening at http://localhost:${port}`)
 });

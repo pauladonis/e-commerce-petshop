@@ -19,39 +19,21 @@ schemes: [http, https]
 
 paths: 
   /cart:
-    get:
-      tags:
-        - Cart
-      summary: Get all products from cart
-      description: Returns all products from cart
-      responses:
-        '200':    
-          description: OK Success
-          schema: 
-            $ref: "#/components/schemas/Cart"
-        '404':    
-          description: Cart not found
     post:
       tags:
         - Cart
-      summary: Post products to cart
-      description: Adding products to cart
+      summary: Create cart
+      description: Creating a cart for a user
       produces: 
         - application/json
       consumes: 
         - application/json
       parameters: 
       - in: body
-        name: cart
+        name: userId
         schema: 
           type: object
           properties:
-            product_id:
-              type: integer
-            product_name:
-              type: string
-            amount: 
-              type: integer
             user_id:
               type: integer
       responses: 
@@ -60,16 +42,14 @@ paths:
           schema: 
             type: object
             properties:
-              product_id:
+              id:
                 type: integer
-              product_name:
+              status:
                 type: string
-              amount:
-                type: integer
               user_id:
                 type: integer
-        '404': 
-          description: Carts not found
+        '400': 
+          description: Bad Request
   /cart/{cartId}:
     get:
       tags:
@@ -87,14 +67,14 @@ paths:
         '200':
           description: OK Success
           schema:
-            $ref: "#/components/schemas/CartId"
+            $ref: "#/components/schemas/CartItem"
         '404':
           description: Cart not found
     post:
       tags:
         - Cart
       summary: Post to cart by Id
-      description: Posts a product from products to cart
+      description: Adds a product from products to cart
       produces: 
         - application/json
       consumes: 
@@ -103,10 +83,19 @@ paths:
         - in: path
           name: cartId
           required: true
-          enum: [1,2,3,4,5,6,7,8,9,10]
           schema:
             type: integer
             format: int
+        - in: body
+          name: productId and price
+          required: true
+          schema: 
+            type: object
+            properties:
+              product_id:
+                type: integer
+              price:
+                type: integer
       responses:
         '201':
           description: Item added to cart
@@ -124,9 +113,19 @@ paths:
           schema:
             type: integer
             format: int
+        - in: body
+          name: product_id
+          required: true
+          schema: 
+            type: object
+            properties: 
+              product_id:
+                type: integer
       responses: 
         '204': 
           description: Cart item was deleted
+        '400':
+          descruption: Bad Request
   /cart/{cartId}/checkout: 
     post: 
       tags:
@@ -142,6 +141,17 @@ paths:
       responses:
         '200':
           description: Order created
+          schema: 
+            type: object
+            properties:
+              id:
+                type: integer
+              total_price:
+                type: integer
+              status: 
+                type: string
+              cart_id:
+                type: integer
         '404': 
           description: Cart not found
   /register:
@@ -234,7 +244,6 @@ paths:
         - in: path
           name: userId
           required: true
-          enum: [1,2,3,4]
           schema:
             type: integer
             format: int
@@ -362,7 +371,7 @@ paths:
             $ref: "#/components/schemas/Orders"
         '404':    
           description: Page not found
-  /orders/{orderId}:
+  /order/{orderId}:
     get:
       tags:
         - Orders
@@ -415,6 +424,21 @@ components:
           type: integer
         user_id:
           type: integer
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        cart_id:
+          type: integer
+        product_id:
+          type: integer
+        quantity:
+          type: integer
+        price:
+          type: integer
+        name:
+          type: string
     Users:
       type: array
       items: 
@@ -443,14 +467,6 @@ components:
           type: string
         password:
           type: string
-        full_name:
-          type: string
-        billing_address:
-          type: string
-        shipping_address:
-          type: string
-        phone: 
-          type: integer
     UserRegistration:
       type: object
       properties:
@@ -458,14 +474,6 @@ components:
           type: string
         password:
           type: string
-        full_name:
-          type: string
-        billing_address:
-          type: string
-        shipping_address:
-          type: string
-        phone: 
-          type: integer
     Products:
       type: array
       items:
@@ -483,6 +491,8 @@ components:
             type: integer
           stock: 
             type: integer
+          image:
+            type: string
     ProductId:
       type: object
       properties:
