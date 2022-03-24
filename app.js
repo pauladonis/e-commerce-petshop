@@ -15,6 +15,7 @@ const e = require('connect-flash');
 const swaggerJsDocs = YAML.load('./api.yaml');
 const cors = require('cors');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_TEST);
+const googleAuth = require("./googleAuth");
 
 
 initializePassport(passport);
@@ -26,44 +27,27 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.json())
 app.use(passport.initialize())
 app.use(passport.session())
+app.use(
+  cors({
+    origin: "http://localhost:3001", // allow to server to accept request from different origin
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true // allow session cookie from browser to pass through
+  })
+);
 app.use(flash());
 app.use(session({ cookie: { maxAge: 60000 },
   key: 'userId', 
   secret: 'secret',
   resave: true, 
-  saveUninitialized: true}));
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
+  saveUninitialized: true})
+  );
+
 
 app.use(cookieParser('secret'));
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
 });
-
-
-//user registration 
-app.post('/register', (req, res, next) => {
-  const result = repository.registerUser(req.body);
-  result.then(value=>{
-    console.log(value);
-    if(!value.length) {
-      res.status('400').send('Bad Request');
-    } else {
-      res.status('201').send(value);
-      req.login(value, function(err) {
-        if (!err) {
-          res.redirect('/account');
-        }
-      });
-    }
-  }).catch(error=>{next(error)});
-});
-
-
 
 //cart endpoints
 app.post('/cart', (req, res) => {
@@ -78,7 +62,7 @@ app.post('/cart', (req, res) => {
 });
 
 
-app.post('/cart/:cartId', (error, req, res, next) => {
+app.post('/cart/:cartId', (req, res, next) => {
   const result = repository.addToCartById(req.params['cartId'], req.body.product_id, req.body.price);
   result.then(value=>{
     if(!value.length) {
@@ -107,7 +91,7 @@ app.post('/cart/:cartId/checkout',async (req, res, next) => {
 })
 
 
-app.post('/carts', (req, res) => {
+app.post('/carts', (req, res, next) => {
   const result = repository.showCart(req.body.userId); 
   result.then(value=>{
     if(!value.length) {
@@ -115,10 +99,10 @@ app.post('/carts', (req, res) => {
     } else {
       res.status('200').send(value);
     }
-  });
+  }).catch(error=>{next(error)});
 });
 
-app.get('/cart/:cartId', (req, res) => {
+app.get('/cart/:cartId', (req, res, next) => {
   const result = repository.showCartById(req.params['cartId']);
   result.then(value=>{
     if(!value.length) {
@@ -126,7 +110,7 @@ app.get('/cart/:cartId', (req, res) => {
     } else {
       res.status('200').send(value);
     }
-  });  
+  }).catch(error=>{next(error)}); 
 });
 
 app.delete('/cart/:cartId', (req, res, next) => {
@@ -296,6 +280,19 @@ app.post('/payment', async (req, res) => {
   }
 })
 
+//user registration 
+app.post('/register', (req, res, next) => {
+  const result = repository.registerUser(req.body);
+  result.then(value=>{
+    console.log(value);
+    if(!value.length) {
+      res.status('400').send('Bad Request');
+    } else {
+      res.status('200').send(value);
+    }
+  }).catch(error=>{next(error)});
+});
+
 //passport login
 app.post('/login',
   passport.authenticate('local', { successRedirect: '/succesLogin',
@@ -312,10 +309,22 @@ app.get('/failedLogin', (req, res) => {
   res.status('401').send('Username or password is incorrect');
 });
 
-app.get('/logout', function(req, res){
+app.post('/logout', function(req, res){
   req.logout();
   res.redirect('/products');
+  console.log("Logged out");
 });
+
+//google auth
+app.get('/auth/google', passport.authenticate('google', { scope: 'email'}));
+
+app.get('/auth/google/callback', passport.authenticate('google', {session: true}), (req, res) => {
+  res.send(req.user.id);
+});
+
+app.get('/googlelogin', (req, res) => {
+  res.send(req.user.id);
+})
 
 app.use((req, res, next) => {
   const error = new Error('Bad Request');
