@@ -16,7 +16,7 @@ const swaggerJsDocs = YAML.load('./api.yaml');
 const cors = require('cors');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_TEST);
 const googleAuth = require("./googleAuth");
-require(dotenv).config();
+require('dotenv').config();
 
 
 initializePassport(passport);
