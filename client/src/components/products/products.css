@@ -1,0 +1,42 @@
+.products {
+    display:flex;
+    flex-direction: column;
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    align-content:center;
+}
+
+.product {
+    display:flex;
+    flex-wrap: wrap;
+    margin: 2em;
+    justify-content:center;
+    flex-direction: row;
+    gap: 3em;
+    align-items: center;
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+h3 {
+    margin: 2em;
+    padding: 2em;
+}
+
+.link {
+    text-decoration:none;
+    color: rgb(131, 209, 196);
+}    
+
+.product-item {
+    display:flex;
+    flex-direction: column;
+    color: black;
+    align-items:center;
+    margin: 1rem;
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+.button {
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    border-radius: 20%;
+    background-color: rgb(131, 209, 196);
+}

@@ -69,11 +69,11 @@ const removeFromCartById = async function(cartId, product_id) {
     const queryTextUpdate = `UPDATE cart_item set quantity=quantity-1 where id=${cart_item_id} returning quantity`;
     const responseUpdate = await pool.query(queryTextUpdate);
     return responseUpdate.rows;
-  }
+  } 
   
-  const queryDeleteCartItem = `DELETE from cart_item where id=${cart_item_id} returning *`;
-  await pool.query(queryDeleteCartItem);
-  
+  const queryDeleteCartItem = `DELETE from cart_item where id=${cart_item_id}`;
+  const responseDelete = await pool.query(queryDeleteCartItem);
+  return responseDelete.rows;
 }
   
 //product functions

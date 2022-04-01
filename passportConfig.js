@@ -3,6 +3,7 @@ const { pool } = require('./dbConfig');
 const bcrypt = require('bcrypt');
 const passport = require("passport");
 
+
 function initialize(passport) {
   const authenticateUser = (email, password, done) => {
     
@@ -55,5 +56,6 @@ passport.deserializeUser((id, done) => {
   )
 })
 }
+
 module.exports = initialize;
 

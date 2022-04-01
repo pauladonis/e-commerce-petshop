@@ -1,0 +1,13 @@
+.account {
+    display:flex;
+    justify-content:center;
+    align-items: center;
+    flex-direction: column;
+    justify-items: center;
+}
+
+.button {
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    border-radius: 20%;
+    background-color: rgb(131, 209, 196);
+}

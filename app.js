@@ -19,12 +19,16 @@ const googleAuth = require("./googleAuth");
 
 
 initializePassport(passport);
-
+if(process.env.NODE_ENV === "production") {
+  //server static content
+  //npm run build
+  app.use(express.static("./client/build"));
+}
 
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerJsDocs));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(express.json())
+app.use(express.json());
 app.use(passport.initialize())
 app.use(passport.session())
 app.use(
@@ -302,28 +306,29 @@ app.post('/login',
 
 app.get('/succesLogin', (req, res) => {
   res.status('200').send(req.session.passport);
-  console.log(req.session.passport)
 });
 
 app.get('/failedLogin', (req, res) => {
-  res.status('401').send('Username or password is incorrect');
+  res.status('401').send("Username or password is incorrect!");
 });
 
-app.post('/logout', function(req, res){
+app.post('/logout', (req, res) => {
   req.logout();
   res.redirect('/products');
-  console.log("Logged out");
 });
 
 //google auth
 app.get('/auth/google', passport.authenticate('google', { scope: 'email'}));
 
-app.get('/auth/google/callback', passport.authenticate('google', {session: true}), (req, res) => {
-  res.send(req.user.id);
+app.get('/auth/google/callback', passport.authenticate('google', {session: true}) ,(req, res) => {
+  googleId = req.session.passport;
+  res.send(req.session.passport);
 });
 
-app.get('/googlelogin', (req, res) => {
-  res.send(req.user.id);
+let googleId = null;
+
+app.get('/googleId', (req, res) => {
+  res.send(googleId);
 })
 
 app.use((req, res, next) => {
@@ -336,6 +341,10 @@ app.use((error, req, res, next) => {
   res.status(error.status || 500);
   res.send(error.message);
 });
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "client/build/index.html"));
+})
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)

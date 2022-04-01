@@ -1,0 +1,32 @@
+.links {
+    display:flex;
+    margin: 3rem;
+    flex-direction: row;
+    gap: 3em;
+    align-items: center;
+    font-size: 1.2rem;
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+ 
+.links *{
+    text-decoration:none;
+    color: rgb(131, 209, 196);
+}
+
+.navBar {
+    display:flex;
+    flex-direction: row;
+}
+
+#cart {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+}
+
+#loggedIn {
+    display: flex;
+    gap: 3rem;
+}
+
+

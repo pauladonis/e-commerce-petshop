@@ -1,0 +1,40 @@
+.cart { 
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    border: 5px solid black;
+    border-radius: 5%;
+    width: 20em;
+    padding: 10px;
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2rem auto;
+    flex-direction: column;
+    gap: 3em;
+}
+
+.cart-container {
+    display:flex;
+    flex-direction: column;
+
+}
+
+#StripeContainer {
+    size: auto;
+    margin: 0;
+}
+
+.button {
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    border-radius: 20%;
+    background-color: rgb(131, 209, 196);
+}
+
+.cart-link {
+    text-decoration:none;
+    color: rgb(131, 209, 196);
+    font-size: 1.25em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 10em auto;
+}

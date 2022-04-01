@@ -1,0 +1,14 @@
+.login {
+    display:flex;
+    margin: 2rem auto;
+    flex-direction: column;
+    gap: 3em;
+    align-items: center;
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+.googleLogin {
+    display:flex;
+    flex-direction: row;
+    align-items:center;
+}
