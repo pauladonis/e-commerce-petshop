@@ -347,6 +347,6 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "client/build/index.html"));
 })
 
-app.listen(process.env.port, () => {
-  console.log(`Example app listening at http://localhost:${process.env.port}`)
+app.listen(process.env.PORT, () => {
+  console.log(`Example app listening at http://localhost:${process.env.PORT}`)
 });
