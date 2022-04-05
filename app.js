@@ -4,7 +4,7 @@ const { pool } = require('./dbConfig')
 const passport = require("passport");
 const initializePassport = require ('./passportConfig')
 const app = express()
-const port = process.env.PORT || 3000
+const PORT = process.env.PORT || 3000
 const flash = require('connect-flash')
 const session = require('cookie-session')
 const cookieParser = require('cookie-parser')
@@ -25,7 +25,7 @@ if(process.env.NODE_ENV === "production") {
   //npm run build
   app.use(express.static("./client/build"));
 }
-
+app.use(express.static("./client/build"))
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerJsDocs));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -347,6 +347,6 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "client/build/index.html"));
 })
 
-app.listen(process.env.PORT, () => {
-  console.log(`Example app listening at http://localhost:${process.env.PORT}`)
+app.listen(PORT, () => {
+  console.log(`Example app listening at http://localhost:${PORT}`)
 });
